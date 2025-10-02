@@ -1,0 +1,33 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.linspace(0, 0.03, int(0.03 / 0.0005))
+fun1 = lambda t : np.cos(520*np.pi*t + np.pi/3)
+y1 = np.vectorize(fun1)(x)
+fun2 = lambda t : np.cos(280*np.pi*t + np.pi/3)
+y2 = np.vectorize(fun2)(x)
+fun3 = lambda t : np.cos(120*np.pi*t + np.pi/3)
+y3 = np.vectorize(fun3)(x)
+
+fig, axs = plt.subplots(3)
+fig.suptitle('Grafic')
+axs[0].plot(x, y1)
+axs[1].plot(x, y2)
+axs[2].plot(x, y3)
+plt.savefig(fname='ex1fig1.pdf')
+plt.show()
+
+x = np.linspace(0, 0.03, int(200 * 0.03))
+y1 = np.vectorize(fun1)(x)
+y2 = np.vectorize(fun2)(x)
+y3 = np.vectorize(fun3)(x)
+fig, axs = plt.subplots(3)
+fig.suptitle('Esantionat')
+axs[0].plot(x, y1)
+axs[0].stem(x, y1)
+axs[1].plot(x, y2)
+axs[1].stem(x, y2)
+axs[2].plot(x, y3)
+axs[2].stem(x, y3)
+plt.savefig(fname='ex1fig2.pdf')
+plt.show()
