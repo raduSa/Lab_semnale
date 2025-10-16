@@ -1,0 +1,59 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+fun_sin = lambda x : np.sin(x)
+fun_approx = lambda x : x
+fun_pade = lambda x : (x - (7*x**3)/60) / (1 + x**2/20)
+
+x = np.linspace(-np.pi/2, np.pi/2, 1000)
+
+fig, axs = plt.subplots(3, 2)
+y = np.vectorize(fun_sin)(x)
+axs[0, 0].set_title('Sin')
+axs[0, 0].plot(x, y)
+
+y = np.vectorize(fun_approx)(x)
+axs[1, 0].set_title('Approx')
+axs[1, 0].plot(x, y)
+
+y = np.vectorize(lambda x : np.abs(fun_sin(x) - fun_approx(x)))(x)
+axs[2, 0].set_title('Difference')
+axs[2, 0].plot(x, y)
+
+y = np.vectorize(fun_pade)(x)
+axs[0, 1].set_title('Pade')
+axs[0, 1].plot(x, y)
+
+y = np.vectorize(lambda x : np.abs(fun_sin(x) - fun_pade(x)))(x)
+axs[1, 1].set_title('Difference (Pade)')
+axs[1, 1].plot(x, y)
+
+plt.savefig(fname='Lab2/ex8fig1.pdf')
+plt.show()
+
+# logarithmic
+x = np.linspace(-np.pi/2, np.pi/2, 1000)
+
+fig, axs = plt.subplots(3, 2)
+y = np.vectorize(lambda x : np.log(fun_sin(x)))(x)
+axs[0, 0].set_title('Sin')
+axs[0, 0].plot(x, y)
+
+y = np.vectorize(lambda x : np.log(fun_approx(x)))(x)
+axs[1, 0].set_title('Approx')
+axs[1, 0].plot(x, y)
+
+y = np.vectorize(lambda x : np.log(np.abs(fun_sin(x) - fun_approx(x))))(x)
+axs[2, 0].set_title('Difference')
+axs[2, 0].plot(x, y)
+
+y = np.vectorize(lambda x : np.log(fun_pade(x)))(x)
+axs[0, 1].set_title('Pade')
+axs[0, 1].plot(x, y)
+
+y = np.vectorize(lambda x : np.log(np.abs(fun_sin(x) - fun_pade(x))))(x)
+axs[1, 1].set_title('Difference (Pade)')
+axs[1, 1].plot(x, y)
+
+plt.savefig(fname='Lab2/ex8fig2.pdf')
+plt.show()

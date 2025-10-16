@@ -1,0 +1,19 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+fs = 20
+signal_1 = lambda t : np.sin((fs//2)*2*np.pi*t)
+signal_2 = lambda t : np.sin((fs//4)*2*np.pi*t)
+signal_3 = lambda t : np.sin(0)
+
+x = np.linspace(0, 1, 200)
+fig, axs = plt.subplots(3)
+y = np.vectorize(signal_1)(x)
+axs[0].stem(x, y)
+y = np.vectorize(signal_2)(x)
+axs[1].stem(x, y)
+y = np.vectorize(signal_3)(x)
+axs[2].stem(x, y)
+
+plt.savefig(fname='Lab2/ex6fig1.pdf')
+plt.show()

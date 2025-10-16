@@ -1,0 +1,21 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import sounddevice
+import scipy
+
+duration = 2
+x = np.linspace(0, duration, 44100 * duration)
+
+fun = lambda t : np.sin(800*np.pi*t)
+y = np.vectorize(fun)(x)
+
+sounddevice.play(y, 44100)
+sounddevice.wait()
+
+fun = lambda t : np.sign(np.sin(600*np.pi*t))
+y = np.vectorize(fun)(x)
+
+scipy.io.wavfile.write('Lab2/signal.wav', 44100, y)
+rate, x = scipy.io.wavfile.read('Lab2/signal.wav')
+sounddevice.play(x, rate)
+sounddevice.wait()

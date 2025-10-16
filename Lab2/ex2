@@ -1,0 +1,24 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+signal = lambda t, phi : np.sin(2*np.pi*t + phi)
+
+x = np.linspace(0, 10, 1000)
+fig, axs = plt.subplots(4)
+
+for i in range(4):
+    axs[i].plot(x, np.vectorize(lambda t : signal(t, 10*i))(x))
+
+plt.savefig(fname='Lab2/ex2fig1.pdf')
+plt.show()
+
+signal = lambda t, z, gamma : np.sin(2*np.pi*t) + gamma * z
+
+fig, axs = plt.subplots(5)
+for i, SNR in enumerate([0.1, 1, 10, 100, 1000]):
+    z = np.random.normal(size=(1000))
+    gamma = np.sqrt(np.linalg.norm(x) / (SNR * np.linalg.norm(z)))
+    axs[i].plot(x, np.vectorize(lambda t, z : signal(t, z, gamma))(x, z))
+
+plt.savefig(fname='Lab2/ex2fig2.pdf')
+plt.show()

@@ -1,0 +1,12 @@
+import numpy as np
+import sounddevice
+
+signal_1 = lambda t : np.sin(600*np.pi*t)
+signal_2 = lambda t : np.sin(800*np.pi*t)
+
+duration = 2
+x = np.linspace(0, duration, 44100 * duration)
+
+y = np.concat((np.vectorize(signal_1)(x), np.vectorize(signal_2)(x)))
+sounddevice.play(y, 44100)
+sounddevice.wait()

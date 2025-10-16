@@ -1,0 +1,19 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+sinus = lambda t : np.sin(16*np.pi*t)
+sawtooth = lambda t : np.mod(t, 1/2)
+added = lambda t : np.sin(16*np.pi*t) + np.mod(t, 1/2)
+
+x = np.linspace(0, 10, 1000)
+
+fig, axs = plt.subplots(3)
+y = np.vectorize(sinus)(x)
+axs[0].plot(x, y)
+y = np.vectorize(sawtooth)(x)
+axs[1].plot(x, y)
+y = np.vectorize(added)(x)
+axs[2].plot(x, y)
+
+plt.savefig(fname='Lab2/ex4fig1.pdf')
+plt.show()

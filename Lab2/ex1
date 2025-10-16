@@ -1,0 +1,13 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.io.wavfile as wav
+signal_sin = lambda t : 10 * np.sin(200*np.pi*t + 10)
+signal_cos = lambda t : 10 * np.cos(200*np.pi*t + 10 - np.pi/2)
+
+x = np.linspace(-10, 10, 1000)
+fig, axs = plt.subplots(2)
+axs[0].plot(x, np.vectorize(signal_sin)(x))
+axs[1].plot(x, np.vectorize(signal_cos)(x))
+
+plt.savefig(fname='Lab2/ex1fig1.pdf')
+plt.show()
