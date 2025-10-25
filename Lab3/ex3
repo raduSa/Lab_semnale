@@ -1,0 +1,33 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+
+signal = lambda x : 5*np.sin(2*np.pi * 5 * x) + 10*np.sin(2*np.pi * 10 * x) + 5*np.sin(2*np.pi * 15 * x)
+
+x = np.linspace(0, 1, 1000)
+y = np.vectorize(signal)(x)
+
+plt.plot(x, y)
+plt.savefig(fname='Lab3/ex3fig1.pdf')
+plt.show()
+
+matrix_size = 16
+
+F = np.zeros((matrix_size, matrix_size), dtype=np.complex128)
+
+for line in range(matrix_size):
+    for col in range(matrix_size):
+        F[line, col] = math.e**(1j * -2*np.pi*line*col/matrix_size)
+
+# 5 * 16 = 80
+min_freq = 5
+sampling_rate = matrix_size * min_freq
+x = np.linspace(0, 1/min_freq, matrix_size + 1)[:-1]
+y = np.vectorize(signal)(x)
+F_x = np.dot(F, y)
+
+# print(np.absolute(F_x))
+
+plt.stem(np.arange(matrix_size), np.absolute(F_x))
+plt.savefig(fname='Lab3/ex3fig2.pdf')
+plt.show()

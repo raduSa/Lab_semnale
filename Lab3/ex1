@@ -1,0 +1,40 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+
+matrix_size = 64
+
+F = np.zeros((matrix_size, matrix_size), dtype=np.complex128)
+
+for line in range(matrix_size):
+    for col in range(matrix_size):
+        F[line, col] = math.e**(1j * -2*np.pi*line*col/matrix_size)
+
+fig, axs = plt.subplots(6)
+
+x = np.linspace(0, 1, matrix_size)
+
+for i, line_nr in enumerate(range(1, 4)):
+    line = F[line_nr]
+    real = [elem.real for elem in line]
+    imag = [elem.imag for elem in line]
+    axs[i].set_title(f'F[{line_nr}]')
+    axs[i].plot(x, real)
+    axs[i].plot(x, imag, '--')
+    
+
+for i, line_nr in enumerate(range(matrix_size - 3, matrix_size)):
+    line = F[line_nr]
+    real = [elem.real for elem in line]
+    imag = [elem.imag for elem in line]
+    axs[i+3].set_title(f'F[{line_nr}]')
+    axs[i+3].plot(x, real)
+    axs[i+3].plot(x, imag, '--')
+
+plt.savefig(fname='Lab3/ex1fig1.pdf')
+plt.show()
+
+F_h = np.matrix(F).getH()
+print(F_h * np.matrix(F))
+print(f'Check F_h * F = I: {np.allclose(F_h * np.matrix(F), np.eye(64), atol=1e-16)}')
+print(f'Check F_h * F = I: {np.linalg.norm(F_h * np.matrix(F)) == matrix_size * np.sqrt(matrix_size)}')

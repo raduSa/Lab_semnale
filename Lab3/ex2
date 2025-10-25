@@ -1,0 +1,36 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+
+signal = lambda x : np.sin(10*np.pi*x + np.pi/2)
+
+x = np.linspace(0, 1, 1000)
+y = np.vectorize(signal)(x)
+
+plt.plot(x, y)
+plt.savefig(fname='Lab3/ex2fig1.pdf')
+plt.show()
+
+fig, axs = plt.subplots(2, 2)
+for i, omega in enumerate([1, 2, 5, 7]):
+    e = lambda x : math.e**(1j * -2*np.pi*omega*x)
+    complex_vals = np.vectorize(e)(x)
+    complex_vals_deformed = complex_vals * y
+
+    ax = axs[i//2, i%2]
+    ax.set_xlim(-1.1, 1.1)
+    ax.set_ylim(-1.1, 1.1)
+
+    real = [elem.real for elem in complex_vals_deformed]
+    imag = [elem.imag for elem in complex_vals_deformed]
+    colors = np.abs(y)
+#     axs[i//2, i%2].scatter(real, imag, c=np.abs(y), cmap='viridis')
+
+    animation_step = 5
+
+    for idx in range(0, len(real), animation_step):
+        ax.scatter(real[idx:idx+animation_step], imag[idx:idx+animation_step], color=plt.cm.viridis(colors[idx:idx+animation_step]), s=1)
+        plt.pause(0.0001)
+
+plt.savefig(fname='Lab3/ex2fig2.pdf')        
+plt.show()
