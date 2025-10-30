@@ -1,0 +1,33 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+original_freq = 10
+fs = 7
+signal_1 = lambda t : np.sin((original_freq + fs*2)* 2*np.pi * t)
+highest_freq = original_freq + fs*2
+signal_2 = lambda t : np.sin((original_freq + fs*1) * 2*np.pi * t)
+signal_3 = lambda t : np.sin((original_freq + fs*0) * 2*np.pi * t)
+
+x = np.linspace(0, 1, 1000)
+samples = np.linspace(0, 1, highest_freq * 2 + 1)
+
+
+fig, axs = plt.subplots(3)
+
+y_1 = np.vectorize(signal_1)(x)
+axs[0].plot(x, y_1)
+samples_eval = np.vectorize(signal_1)(samples)
+axs[0].scatter(samples, samples_eval, color='red')
+
+y_2 = np.vectorize(signal_2)(x)
+axs[1].plot(x, y_2)
+samples_eval = np.vectorize(signal_2)(samples)
+axs[1].scatter(samples, samples_eval, color='red')
+
+y_3 = np.vectorize(signal_3)(x)
+axs[2].plot(x, y_3)
+samples_eval = np.vectorize(signal_3)(samples)
+axs[2].scatter(samples, samples_eval, color='red')
+
+plt.show()
+plt.savefig(fname='Lab4/ex3fig1.pdf')

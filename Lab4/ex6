@@ -1,0 +1,26 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy
+import sounddevice
+
+rate, data = scipy.io.wavfile.read('Lab4/aeiou.wav')
+# print(data.shape)
+# data is stereo
+data = data.mean(axis=1)
+
+group_size = len(data) // 100
+data = np.array([data[idx:idx + group_size].copy() for idx in range(0, len(data), group_size // 2)][:-1])
+
+result_matrix = np.zeros((data.shape[1], data.shape[0]))
+print(result_matrix.shape)
+
+for i, group in enumerate(data):
+    F_x = np.abs(np.fft.fft(group))
+    result_matrix[:, i] = F_x
+
+plt.pcolormesh(result_matrix, cmap='magma', vmin=0, vmax=100000)
+plt.ylabel('Frequency [Hz]')
+plt.xlabel('Time [sec]')
+plt.colorbar(label='Power [dB]')
+plt.show()
+plt.savefig(fname='Lab4/ex6fig1.pdf')

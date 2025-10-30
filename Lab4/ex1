@@ -1,0 +1,68 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+import time
+
+signal = lambda x : 5*np.sin(2*np.pi * 5 * x) + 10*np.sin(2*np.pi * 10 * x) + 5*np.sin(2*np.pi * 15 * x)
+
+x = np.linspace(0, 1, 1000)
+y = np.vectorize(signal)(x)
+
+run_times = [128, 256, 512, 1024, 2048, 4096, 8192]
+dft_times = list()
+fft_times = list()
+np_times = list()
+
+for matrix_size in run_times:
+    min_freq = 1
+
+    x = np.linspace(0, 1/min_freq, matrix_size + 1)[:-1]
+    y = np.vectorize(signal)(x)
+
+    # DFT
+    start_dft = time.perf_counter()
+    F = np.zeros((matrix_size, matrix_size), dtype=np.complex128)
+
+    for line in range(matrix_size):
+        for col in range(matrix_size):
+            F[line, col] = math.e**(1j * -2*np.pi*line*col/matrix_size)
+
+    F_x = np.dot(F, y)
+    end_dft = time.perf_counter()
+    dft_time = (end_dft - start_dft)*1000
+    dft_times.append(dft_time)
+    print(f'DFT time: {dft_time}')
+    # print(F_x)
+
+    # FFT
+    start_fft = time.perf_counter()
+    def fft(samples):
+        N = len(samples)
+        if N == 1:
+            return samples
+        X_even = fft(samples[0::2])
+        X_odd = fft(samples[1::2])
+        factor = np.exp(-2j * np.pi * np.arange(N)/ N)
+        X = np.concatenate((X_even + factor[:int(N/2)]*X_odd, X_even + factor[int(N/2):]*X_odd))
+        return X
+    F_x = fft(y)
+    end_fft = time.perf_counter()
+    fft_time = (end_fft - start_fft)*1000
+    fft_times.append(fft_time)
+    print(f'FFT time: {(fft_time)}')
+    # print(F_x)
+
+    # Numpy FFT
+    start_np = time.perf_counter()
+    F_x = np.fft.fft(y)
+    end_np = time.perf_counter()
+    time_np = (end_np - start_np)*1000
+    np_times.append(time_np)
+    print(f'Numpy FFT: {(time_np)}')
+
+plt.plot(run_times, dft_times, color='red')
+plt.plot(run_times, fft_times, color='yellow')
+plt.plot(run_times, np_times, color='green')
+plt.xscale('log')
+plt.show()
+plt.savefig(fname='Lab4/ex1fig1.pdf')
