@@ -63,6 +63,6 @@ for matrix_size in run_times:
 plt.plot(run_times, dft_times, color='red')
 plt.plot(run_times, fft_times, color='yellow')
 plt.plot(run_times, np_times, color='green')
-plt.xscale('log')
+plt.yscale('log')
 plt.savefig(fname='Lab4/ex1fig1.pdf')
 plt.show()

@@ -9,7 +9,7 @@ signal_2 = lambda t : np.sin((original_freq + fs*1) * 2*np.pi * t)
 signal_3 = lambda t : np.sin((original_freq + fs*0) * 2*np.pi * t)
 
 x = np.linspace(0, 1, 1000)
-samples = np.linspace(0, 1, highest_freq * 2 + 1)
+samples = np.linspace(0, 1, (highest_freq * 2 + 1) + 1)[:-1]
 
 
 fig, axs = plt.subplots(3)
