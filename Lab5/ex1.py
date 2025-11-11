@@ -7,7 +7,7 @@ x = x[1:]
 # print(x[:100])
 # a) -> e sampled din ora in ora
 # b) -> 25-08-2012 00:00 - 25-09-2014 23:00
-# c) 18289/2 esantioane => floor(18289/2) = 9144 frecventa maxima 
+# c) fs = 1/3600 => max freq fara aliasing = 1/7200
 # d)
 N = x.shape[0]
 x = x[:, 2]
@@ -83,5 +83,6 @@ axs[1].plot(np.arange(N), x_filtered)
 axs[1].title.set_text('Weekly freq filtered out')
 plt.tight_layout()
 plt.show()
+
 
 
