@@ -3,12 +3,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 X = datasets.face(gray=True)
-print(X.shape)
+# print(X.shape)
 # plt.imshow(X, cmap=plt.cm.gray)
 # plt.show()
 
 Y = np.fft.fft2(X)
-print(Y.shape)
+# print(Y.shape)
 freq_db = 20*np.log10(abs(Y))
 
 # plt.imshow(freq_db)
@@ -52,96 +52,114 @@ X_noisy = X + noise
 # plt.title('Noisy')
 # plt.show()
 
-# 1
+# ex_1
 # signal_1
 func1 = lambda x, y: np.sin(2*np.pi*x + 3*np.pi*y)
 
-X = [[0] * 1000 for _ in range(1000)]
-for line in range(1000):
-    for col in range(1000):
-        X[line][col] = func1(line, col)
+X = [[0] * 100 for _ in range(100)]
+N = 100
+x = np.linspace(0, 1, N)
+y = np.linspace(0, 1, N)
+for i, line in enumerate(x):
+    for j, col in enumerate(y):
+        X[i][j] = func1(line, col)
 X = np.array(X)
-print(X.shape)
+
+plt.subplot(1, 2, 1)
 plt.imshow(X, cmap=plt.cm.gray)
 plt.title('Img1')
-# plt.show()
 
+# In frecventa ar trebui sa apara 2 puncte
 Y = np.fft.fft2(X)
 freq_db = 20*np.log10(abs(Y))
+plt.subplot(1, 2, 2)
 plt.imshow(freq_db)
 plt.colorbar()
 plt.title('Spectr1')
-# plt.show()
+plt.savefig(fname=f'Lab7/ex1_fig1.pdf')
+plt.show()
+
+threshold = np.max(np.abs(Y))
+coords = np.argwhere(np.abs(Y) == threshold)
+
+print(coords)
 
 # signal_2
 func2 = lambda x, y: np.sin(4*np.pi*x) + np.cos(6*np.pi*y)
 
-X = [[0] * 1000 for _ in range(1000)]
-for line in range(1000):
-    for col in range(1000):
-        X[line][col] = func2(line, col)
+for i, line in enumerate(x):
+    for j, col in enumerate(y):
+        X[i][j] = func2(line, col)
 X = np.array(X)
-print(X)
+
+plt.subplot(1, 2, 1)
 plt.imshow(X, cmap=plt.cm.gray)
 plt.title('Img2')
-# plt.show()
 
+# In frecventa imi apar 2 puncte pe linia 0, conjugate, pt sinusoida de pe axa Ox
+# pe coloana 0, 2 puncte conjugate petnru sinusoida de pe axa Oy
 Y = np.fft.fft2(X)
 freq_db = 20*np.log10(abs(Y))
+plt.subplot(1, 2, 2)
 plt.imshow(freq_db)
 plt.colorbar()
 plt.title('Spectr2')
-# plt.show()
+plt.savefig(fname=f'Lab7/ex1_fig2.pdf')
+plt.show()
 
 # signal_3
-Y = [[0] * 1000 for _ in range(1000)]
-Y[0][5] = Y[0][1000 - 5] = 1
+Y = [[0] * 100 for _ in range(100)]
+Y[0][5] = Y[0][100 - 5] = 1
 Y = np.array(Y)
 
 freq_db = 20*np.log10(abs(Y))
+plt.subplot(1, 2, 1)
 plt.imshow(freq_db)
 plt.colorbar()
 plt.title('Spectr3')
-# plt.show()
 
 X = np.fft.ifft2(Y)
-
+# Imi apare doar o sinusoida pe axa Ox de frecventa 5
+plt.subplot(1, 2, 2)
 plt.imshow(np.real(X), cmap=plt.cm.gray)
 plt.title('Img3')
-# plt.show()
+plt.savefig(fname=f'Lab7/ex1_fig3.pdf')
+plt.show()
 
 # signal_4
-Y = [[0] * 1000 for _ in range(1000)]
-Y[5][0] = Y[1000 - 5][0] = 1
+Y = [[0] * 100 for _ in range(100)]
+Y[5][0] = Y[100 - 5][0] = 1
 Y = np.array(Y)
 
 freq_db = 20*np.log10(abs(Y))
+plt.subplot(1, 2, 1)
 plt.imshow(freq_db)
 plt.colorbar()
 plt.title('Spectr4')
-# plt.show()
 
 X = np.fft.ifft2(Y)
-
+# Imi apare acum pe Oy, tot de frecventa 5
+plt.subplot(1, 2, 2)
 plt.imshow(np.real(X), cmap=plt.cm.gray)
 plt.title('Img4')
-# plt.show()
+plt.savefig(fname=f'Lab7/ex1_fig4.pdf')
+plt.show()
 
 #signal_5
-Y = [[0] * 1000 for _ in range(1000)]
-Y[5][5] = Y[1000 - 5][1000 - 5] = 1
+Y = [[0] * 100 for _ in range(100)]
+Y[5][5] = Y[100 - 5][100 - 5] = 1
 Y = np.array(Y)
 
 freq_db = 20*np.log10(abs(Y))
+plt.subplot(1, 2, 1)
 plt.imshow(freq_db)
 plt.colorbar()
 plt.title('Spectr5')
-# plt.show()
 
 X = np.fft.ifft2(Y)
-
+# apar linii diagonale (de fapt cos(5*2pi*x + 5*2pi*y))
+plt.subplot(1, 2, 2)
 plt.imshow(np.real(X), cmap=plt.cm.gray)
 plt.title('Img5')
-# plt.show()
-
+plt.savefig(fname=f'Lab7/ex1_fig5.pdf')
 plt.show()
