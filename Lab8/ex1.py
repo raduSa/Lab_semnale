@@ -13,18 +13,24 @@ noise = np.random.normal(0, 5, size=1000)
 series = np.vectorize(result_func)(trend, seasonal, noise)
 
 plt.subplot(4, 1, 1)
+plt.title('Trend')
 plt.plot(x, trend)
 
 plt.subplot(4, 1, 2)
+plt.title('Seasonal')
 plt.plot(x, seasonal)
 
 plt.subplot(4, 1, 3)
+plt.title('Noise')
 plt.plot(x, noise)
 
 plt.subplot(4, 1, 4)
+plt.title('Series')
 plt.plot(x, series)
 
-# plt.show()
+plt.tight_layout()
+plt.savefig(fname=f'Lab8/ex1_fig1.pdf')
+plt.show()
 
 p = 300
 Y = np.zeros((N-p, p))
@@ -54,7 +60,9 @@ predictions = np.dot(Y, x_star)
 plt.plot(x, series, label='Original', color='b')
 plt.plot(x[p:], predictions[::-1], label='Predicted', color='g', linestyle='dashed')
 plt.legend(loc='upper right')
-# plt.show()
+plt.title('Check reconstructed series')
+plt.savefig(fname=f'Lab8/ex1_fig2.pdf')
+plt.show()
 
 # predict entire series
 predictions = series[:p].tolist()
@@ -64,7 +72,9 @@ while len(predictions) < N:
 plt.plot(x, series, label='Original', color='b')
 plt.plot(x, predictions, label='Predicted', color='g', linestyle='dashed')
 plt.legend(loc='upper right')
-# plt.show()
+plt.title(f'Predicted series from first {p} samples')
+plt.savefig(fname=f'Lab8/ex1_fig3.pdf')
+plt.show()
 
 # get best next guess model
 
@@ -73,8 +83,8 @@ folds = [series[i:i+fold_size+1] for i in range(0, len(series), fold_size)]
 
 best_res = float('inf')
 best_params = (None, None)
-for p in range(1, 100):
-    for m in range(400, 500):   
+for p in [2, 10, 20, 30, 40, 50, 100, 200]:
+    for m in [200, 300, 400, 500, 600, 800]:   
         MSE = 0
         for last_train_index in range(m, N):
             train_samples = series[last_train_index - m : last_train_index]
@@ -90,7 +100,7 @@ for p in range(1, 100):
 
             next_step_prediction = np.dot(Y[0], x_star)
             MSE += np.pow(prediction_sample - next_step_prediction, 2)
-        print(MSE)
+        print(f'For p={p}, m={m}, got: {MSE}')
         if MSE < best_res:
             best_res = MSE
             best_params = (p, m)
