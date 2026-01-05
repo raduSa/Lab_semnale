@@ -4,6 +4,8 @@ from scipy import datasets, ndimage
 from scipy.fft import dctn, idctn
 from skimage import data
 import cv2 as cv
+from huffman import *
+from writer import *
 
 def rgb_to_ycbcr(img):
     img = img.astype(np.float64)
@@ -49,13 +51,13 @@ Q_chroma = [[17, 18, 24, 47, 99, 99, 99, 99,],
             [99, 99, 99, 99, 99, 99, 99, 99,],
             [99, 99, 99, 99, 99, 99, 99, 99,]]
 
-def quantize_block(block, scale):
-    Q_jpeg_scaled = np.array(Q_chroma) * scale
+def quantize_block(block, scale, Q):
+    Q_jpeg_scaled = np.array(Q) * scale
 
     # Encoding
     x = block.astype(np.float64) - 128
     y = dctn(x, norm='ortho')
-    y_jpeg = Q_jpeg_scaled * np.round(y / Q_jpeg_scaled)
+    y_jpeg = np.round(y / Q_jpeg_scaled).astype(int)
 
     return y_jpeg
 
@@ -87,9 +89,9 @@ def get_DCT_coeffs(X, quality_scale_factor):
         for j in range(0, X.shape[1], 8):
             block = X[i : i + 8, j : j + 8, :]        
 
-            DCT_coeffs[i : i + 8, j : j + 8, 0] = quantize_block(block[:, :, 0], quality_scale_factor)
-            DCT_coeffs[i : i + 8, j : j + 8, 1] = quantize_block(block[:, :, 1], quality_scale_factor)
-            DCT_coeffs[i : i + 8, j : j + 8, 2] = quantize_block(block[:, :, 2], quality_scale_factor)
+            DCT_coeffs[i : i + 8, j : j + 8, 0] = quantize_block(block[:, :, 0], quality_scale_factor, Q_jpeg)
+            DCT_coeffs[i : i + 8, j : j + 8, 1] = quantize_block(block[:, :, 1], quality_scale_factor, Q_chroma)
+            DCT_coeffs[i : i + 8, j : j + 8, 2] = quantize_block(block[:, :, 2], quality_scale_factor, Q_chroma)
 
     return DCT_coeffs
 
@@ -126,28 +128,33 @@ def get_bit_size(x):
 # print(get_bit_size(7), get_bit_size(0), get_bit_size(8))
 
 def RLE_encode(coeffs):
+    ZRL = (15, 0, 0)
+    EOB = (0, 0, 0)
+
     res = list()
     zero_run = 0
 
-    for c in coeffs:
-        c = int(c)
+    for c in coeffs:        
         if c == 0:
             zero_run += 1
             if zero_run == 16:
-                res.append((15, 0, 0))  # ZRL symbol
+                res.append(ZRL)
                 zero_run = 0
         else:
             size = get_bit_size(c)
             res.append((zero_run, size, c))
             zero_run = 0
 
-    if zero_run > 0:
-        res.append((0, 0, 0))  # EOB symbol
+    # Remove any trailing ZRL symbols and replace with EOB
+    if zero_run > 0 or res[-1] == ZRL:
+        while res and res[-1] == ZRL:
+            res.pop()
+        res.append(EOB)
 
     return res
 
 def get_symbols_for_block(block, prev_DC):
-    block_flat = apply_zigzag(block)
+    block_flat = apply_zigzag(block).astype(int)
 
     # DC symbol
     DC_coeff = block_flat[0]
@@ -159,35 +166,64 @@ def get_symbols_for_block(block, prev_DC):
 
     return DC_coeff, DC_symbol, AC_symbols
 
-# Get RGB image
-X = data.astronaut()
+def amplitude_bits(value, size):
+    if value >= 0:
+        return value
+    return (1 << size) - 1 + value
 
-DCT_coeffs = get_DCT_coeffs(X, quality_scale_factor=4)
+def encode_block(bitwriter, DC_symbol, AC_symbols, dc_table, ac_table):
+    # DC
+    size, diff = DC_symbol
+    code, length = dc_table[size]
+    bitwriter.write_bits(code, length)
 
+    if size > 0:
+        bitwriter.write_bits(amplitude_bits(diff, size), size)
 
+    # AC
+    for run, size, value in AC_symbols:
+        symbol = (run << 4) | size
+        code, length = ac_table[symbol]
+        bitwriter.write_bits(code, length)
 
-prev_Y_DC = prev_Cb_DC = prev_Cr_DC = 0
+        if size > 0:
+            bitwriter.write_bits(amplitude_bits(value, size), size)
 
-for i in range(0, DCT_coeffs.shape[0], 8):
-    for j in range(0, DCT_coeffs.shape[1], 8):
-        block = X[i : i + 8, j : j + 8, :]
+if __name__ == '__main__':
+    # Get RGB image
+    X = data.astronaut()
 
-        Y_coeffs = block[:, :, 0]
-        Cb_coeffs = block[:, :, 1]
-        Cr_coeffs = block[:, :, 2]
+    DCT_coeffs = get_DCT_coeffs(X, quality_scale_factor=1)
 
-        prev_Y_DC, Y_DC_symbol, Y_AC_symbols = get_symbols_for_block(Y_coeffs, prev_Y_DC)
-        prev_Cb_DC, Cb_DC_symbol, Cb_AC_symbols = get_symbols_for_block(Cb_coeffs, prev_Cb_DC)
-        prev_Cr_DC, Cr_DC_symbol, Cr_AC_symbols = get_symbols_for_block(Cr_coeffs, prev_Cr_DC)
+    # Encode all blocks
 
-        print(f'Block {i + j}: ')
-        print(f'Y: {Y_DC_symbol} {Y_AC_symbols}')
-        print(f'Cb: {Cb_DC_symbol} {Cb_AC_symbols}')
-        print(f'Cr: {Cr_DC_symbol} {Cr_AC_symbols}')
+    prev_Y_DC = prev_Cb_DC = prev_Cr_DC = 0
+    bitwriter = Writer()
 
+    # for i in range(0, DCT_coeffs.shape[0], 8):
+    #     for j in range(0, DCT_coeffs.shape[1], 8):
+    # Just on block
+    i = j = 0
+    block = DCT_coeffs[i : i + 8, j : j + 8, :]
 
-# plt.subplot(121).imshow(X)
-# plt.title('Original')
-# plt.subplot(122).imshow(DCT_coeffs)
-# plt.title('JPEG')
-# plt.show()
+    Y_coeffs = block[:, :, 0]
+    Cb_coeffs = block[:, :, 1]
+    Cr_coeffs = block[:, :, 2]
+
+    prev_Y_DC, Y_DC_symbol, Y_AC_symbols = get_symbols_for_block(Y_coeffs, prev_Y_DC)
+    prev_Cb_DC, Cb_DC_symbol, Cb_AC_symbols = get_symbols_for_block(Cb_coeffs, prev_Cb_DC)
+    prev_Cr_DC, Cr_DC_symbol, Cr_AC_symbols = get_symbols_for_block(Cr_coeffs, prev_Cr_DC)
+
+    print(f'Block {i // 8 + j // 8}: ')
+    print(f'Y: {Y_DC_symbol} {Y_AC_symbols}')
+    print(f'Cb: {Cb_DC_symbol} {Cb_AC_symbols}')
+    print(f'Cr: {Cr_DC_symbol} {Cr_AC_symbols}')
+
+    encode_block(bitwriter, Y_DC_symbol, Y_AC_symbols, DC_LUMA, AC_LUMA)
+    encode_block(bitwriter, Cb_DC_symbol, Cb_AC_symbols, DC_CHROMA, AC_CHROMA)
+    encode_block(bitwriter, Cr_DC_symbol, Cr_AC_symbols, DC_CHROMA, AC_CHROMA)
+
+    bitwriter.flush()
+    entropy_data = bitwriter.buffer
+
+    print(f'Entropy coded data: {entropy_data}')
