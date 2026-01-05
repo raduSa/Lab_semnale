@@ -189,6 +189,9 @@ def encode_block(bitwriter, DC_symbol, AC_symbols, DC_table, AC_table):
         if size > 0:
             bitwriter.write_bits(amplitude_bits(value, size), size)
 
+def flatten_zigzag(Q):
+    return [Q[i][j] for i, j in zigzag]
+
 if __name__ == '__main__':
     # Get RGB image
     X = data.astronaut()
@@ -200,30 +203,44 @@ if __name__ == '__main__':
     prev_Y_DC = prev_Cb_DC = prev_Cr_DC = 0
     bitwriter = Writer()
 
-    # for i in range(0, DCT_coeffs.shape[0], 8):
-    #     for j in range(0, DCT_coeffs.shape[1], 8):
-    # Just one block
-    i = j = 0
-    block = DCT_coeffs[i : i + 8, j : j + 8, :]
+    for i in range(0, DCT_coeffs.shape[0], 8):
+        for j in range(0, DCT_coeffs.shape[1], 8):                
+            block = DCT_coeffs[i : i + 8, j : j + 8, :]
 
-    Y_coeffs = block[:, :, 0]
-    Cb_coeffs = block[:, :, 1]
-    Cr_coeffs = block[:, :, 2]
+            Y_coeffs = block[:, :, 0]
+            Cb_coeffs = block[:, :, 1]
+            Cr_coeffs = block[:, :, 2]
 
-    prev_Y_DC, Y_DC_symbol, Y_AC_symbols = get_symbols_for_block(Y_coeffs, prev_Y_DC)
-    prev_Cb_DC, Cb_DC_symbol, Cb_AC_symbols = get_symbols_for_block(Cb_coeffs, prev_Cb_DC)
-    prev_Cr_DC, Cr_DC_symbol, Cr_AC_symbols = get_symbols_for_block(Cr_coeffs, prev_Cr_DC)
+            prev_Y_DC, Y_DC_symbol, Y_AC_symbols = get_symbols_for_block(Y_coeffs, prev_Y_DC)
+            prev_Cb_DC, Cb_DC_symbol, Cb_AC_symbols = get_symbols_for_block(Cb_coeffs, prev_Cb_DC)
+            prev_Cr_DC, Cr_DC_symbol, Cr_AC_symbols = get_symbols_for_block(Cr_coeffs, prev_Cr_DC)
 
-    print(f'Block {i // 8 + j // 8}: ')
-    print(f'Y: {Y_DC_symbol} {Y_AC_symbols}')
-    print(f'Cb: {Cb_DC_symbol} {Cb_AC_symbols}')
-    print(f'Cr: {Cr_DC_symbol} {Cr_AC_symbols}')
+            # print(f'Block {i // 8 + j // 8}: ')
+            # print(f'Y: {Y_DC_symbol} {Y_AC_symbols}')
+            # print(f'Cb: {Cb_DC_symbol} {Cb_AC_symbols}')
+            # print(f'Cr: {Cr_DC_symbol} {Cr_AC_symbols}')
 
-    encode_block(bitwriter, Y_DC_symbol, Y_AC_symbols, DC_LUMA, AC_LUMA)
-    encode_block(bitwriter, Cb_DC_symbol, Cb_AC_symbols, DC_CHROMA, AC_CHROMA)
-    encode_block(bitwriter, Cr_DC_symbol, Cr_AC_symbols, DC_CHROMA, AC_CHROMA)
+            encode_block(bitwriter, Y_DC_symbol, Y_AC_symbols, DC_LUMA, AC_LUMA)
+            encode_block(bitwriter, Cb_DC_symbol, Cb_AC_symbols, DC_CHROMA, AC_CHROMA)
+            encode_block(bitwriter, Cr_DC_symbol, Cr_AC_symbols, DC_CHROMA, AC_CHROMA)
 
     bitwriter.flush()
     entropy_data = bitwriter.buffer
 
-    print(f'Entropy coded data: {entropy_data.hex()}')
+    # print(f'Entropy coded data: {entropy_data.hex()}')
+
+    
+    save_jpeg(
+        "Tema JPEG/output_encoding.jpg",
+        width=X.shape[1],
+        height=X.shape[0],
+        entropy_data=entropy_data,
+        q_luma=flatten_zigzag(Q_jpeg), # the quant tables need to be stored in zigzag order
+        q_chroma=flatten_zigzag(Q_chroma),
+        huffman_tables=[
+            (STD_DC_LUMA_BITS, STD_DC_LUMA_VALS, 0, 0),
+            (STD_AC_LUMA_BITS, STD_AC_LUMA_VALS, 1, 0),
+            (STD_DC_CHROMA_BITS, STD_DC_CHROMA_VALS, 0, 1),
+            (STD_AC_CHROMA_BITS, STD_AC_CHROMA_VALS, 1, 1),
+        ]
+    )
