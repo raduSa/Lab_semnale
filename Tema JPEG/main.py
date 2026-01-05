@@ -71,7 +71,6 @@ def quantize_block(block, scale):
     return x_jpeg
 
 def pad_image(img):
-    # TODO test this on an actual image
     padded_img = img.copy()
 
     if img.shape[0] % 8 != 0:    
