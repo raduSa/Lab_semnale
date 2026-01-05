@@ -171,10 +171,10 @@ def amplitude_bits(value, size):
         return value
     return (1 << size) - 1 + value
 
-def encode_block(bitwriter, DC_symbol, AC_symbols, dc_table, ac_table):
+def encode_block(bitwriter, DC_symbol, AC_symbols, DC_table, AC_table):
     # DC
     size, diff = DC_symbol
-    code, length = dc_table[size]
+    code, length = DC_table[size]
     bitwriter.write_bits(code, length)
 
     if size > 0:
@@ -183,7 +183,7 @@ def encode_block(bitwriter, DC_symbol, AC_symbols, dc_table, ac_table):
     # AC
     for run, size, value in AC_symbols:
         symbol = (run << 4) | size
-        code, length = ac_table[symbol]
+        code, length = AC_table[symbol]        
         bitwriter.write_bits(code, length)
 
         if size > 0:
@@ -202,7 +202,7 @@ if __name__ == '__main__':
 
     # for i in range(0, DCT_coeffs.shape[0], 8):
     #     for j in range(0, DCT_coeffs.shape[1], 8):
-    # Just on block
+    # Just one block
     i = j = 0
     block = DCT_coeffs[i : i + 8, j : j + 8, :]
 
@@ -226,4 +226,4 @@ if __name__ == '__main__':
     bitwriter.flush()
     entropy_data = bitwriter.buffer
 
-    print(f'Entropy coded data: {entropy_data}')
+    print(f'Entropy coded data: {entropy_data.hex()}')
