@@ -1,3 +1,4 @@
 [submodule "Audio-Watermarking"]
 	path = Audio-Watermarking
 	url = https://github.com/raduSa/Audio-Watermarking.git
+	branch = main
